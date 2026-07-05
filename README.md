@@ -56,12 +56,6 @@ gcloud-1p-init
 gcloud projects list
 ```
 
-バックアップが不要になったら削除：
-
-```zsh
-rm -rf ~/.config/gcloud.bak.*
-```
-
 ## 日常的な使い方
 
 `gcloud` コマンドをそのまま使うだけ。透過的に動作する。
@@ -94,35 +88,15 @@ unset _GCLOUD_OP_TOKEN _GCLOUD_OP_EXP
 
 ## ロールバック手順
 
-バックアップから元に戻す場合：
+本スクリプトの利用をやめる場合：
 
-```zsh
-cp -a ~/.config/gcloud.bak.<timestamp>/. ~/.config/gcloud/
-```
-
-`~/.zshrc` から source 行を削除して `exec zsh`。
+1. `~/.zshrc` から `source` 行を削除して `exec zsh` する
+2. 通常通り `gcloud auth application-default login` を再実行する
 
 ## 設計上のトレードオフ
 
 - **キャッシュ対象**: 1h の access token のみ（refresh token は非キャッシュ）。非 export のシェル変数に保持し、子プロセスには継承されない
 - **gcloud 本体ストアも削除**: `credentials.db` / `legacy_credentials` も削除するため、素の `gcloud`（関数を通さない）は未認証になる
+- **認証ログの自動制御**: 認証時の `refresh_token` がログに残らないよう、`gcloud-op` は `core/log_http false` の設定適用および `~/.config/gcloud/logs/` の自動削除を行います
 - **gsutil 非対応**: `CLOUDSDK_AUTH_ACCESS_TOKEN` を gsutil は読まない。`gcloud storage` を使うこと
 - **対話端末前提**: 8h ごとのブラウザ再認証が必要なため、無人バッチ用途には不向き
-
-## 既知の問題
-
-### gcloud ログに refresh_token が残る
-
-`~/.config/gcloud/logs/` 配下のログファイルに認証時の HTTP ログが残る場合がある。確認と削除：
-
-```zsh
-grep -rl refresh_token ~/.config/gcloud/logs/ 2>/dev/null
-rm -rf ~/.config/gcloud/logs/
-```
-
-ログを残さない設定：
-
-```zsh
-gcloud config set core/verbosity none
-gcloud config set core/log_http false
-```

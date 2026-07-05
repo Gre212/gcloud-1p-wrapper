@@ -33,6 +33,9 @@ _gcloud_op_relogin() {
   local vault="$OP_GCLOUD_VAULT"
   local item="$OP_GCLOUD_ITEM"
 
+  # ログ無効化設定
+  command gcloud config set core/log_http false &>/dev/null
+
   # ブラウザ認証（新 refresh token を発行）
   print "[gcloud-op] gcloud auth application-default login を実行します…"
   command gcloud auth application-default login || return 1
@@ -48,13 +51,14 @@ _gcloud_op_relogin() {
     print "[gcloud-op] 1Password ドキュメントを作成しました（$item）"
   fi
 
-  # ローカル平文を secure delete
+  # ローカル平文・ログを secure delete
   local gcloud_dir="${CLOUDSDK_CONFIG:-$HOME/.config/gcloud}"
   local targets=(
     "$gcloud_dir/application_default_credentials.json"
     "$gcloud_dir/credentials.db"
     "$gcloud_dir/access_tokens.db"
     "$gcloud_dir/legacy_credentials"
+    "$gcloud_dir/logs"
   )
   for t in $targets; do
     if [[ -e "$t" ]]; then
@@ -96,25 +100,11 @@ gcloud() {
 # - ~/.config/gcloud をバックアップ
 # - _gcloud_op_relogin でブラウザ認証 → 1Password 保存 → ローカル削除
 gcloud-1p-init() {
-  local gcloud_dir="${CLOUDSDK_CONFIG:-$HOME/.config/gcloud}"
-  local backup_dir="${HOME}/.config/gcloud.bak.$(date +%Y%m%d%H%M%S)"
-
   print "[gcloud-op] 初回セットアップを開始します。"
-  print "[gcloud-op] バックアップ先: $backup_dir"
-
-  # バックアップ（ロールバック用）
-  cp -a "$gcloud_dir" "$backup_dir" && chmod 700 "$backup_dir" || {
-    print -u2 "[gcloud-op] バックアップに失敗しました。中断します。"
-    return 1
-  }
-  print "[gcloud-op] バックアップ完了。疎通確認後に手動で削除してください: rm -rf $backup_dir"
 
   _gcloud_op_relogin || return 1
 
   print ""
   print "[gcloud-op] セットアップ完了！次のコマンドで疎通確認してください:"
   print "  gcloud projects list"
-  print ""
-  print "[gcloud-op] 問題なければバックアップを削除:"
-  print "  rm -rf $backup_dir"
 }
