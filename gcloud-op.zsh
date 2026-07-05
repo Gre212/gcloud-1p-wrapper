@@ -97,7 +97,6 @@ gcloud() {
 }
 
 # 初回ブートストラップ。一度だけ実行する。
-# - ~/.config/gcloud をバックアップ
 # - _gcloud_op_relogin でブラウザ認証 → 1Password 保存 → ローカル削除
 gcloud-1p-init() {
   print "[gcloud-op] 初回セットアップを開始します。"
