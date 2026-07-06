@@ -7,7 +7,7 @@ body = urllib.parse.urlencode({
     "grant_type":    "refresh_token",
 }).encode()
 try:
-    resp = urllib.request.urlopen("https://oauth2.googleapis.com/token", body)
+    resp = urllib.request.urlopen("https://oauth2.googleapis.com/token", body, timeout=10)
     r = json.load(resp)
     print(r["access_token"])
     print(r.get("expires_in", 3600))
