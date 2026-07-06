@@ -71,13 +71,8 @@ _gcloud_op_relogin() {
   print "[gcloud-op] 完了。"
 }
 
-# gcloud を上書きする関数。
-# - 非 export の _GCLOUD_OP_TOKEN / _GCLOUD_OP_EXP にアクセストークンをセッション内キャッシュ。
-# - 失効時のみ 1Password を読む。refresh token は python stdin にだけ流し argv に載せない。
-# - 8h reauth 失敗（終了コード 2）を検知したら _gcloud_op_relogin を実行し一度だけリトライ。
-# - env で本物の gcloud に渡すので関数再帰しない。トークンは子プロセスのみに継承され export されない。
-gcloud() {
-  emulate -L zsh
+# トークンを確実に取得・キャッシュする内部関数
+_gcloud_op_ensure_token() {
   local now=$EPOCHSECONDS out rc
 
   if [[ -z "${_GCLOUD_OP_TOKEN:-}" || -z "${_GCLOUD_OP_EXP:-}" || $now -ge $_GCLOUD_OP_EXP ]]; then
@@ -92,8 +87,26 @@ gcloud() {
     local ttl=${out##*$'\n'}
     _GCLOUD_OP_EXP=$(( now + ttl - 300 ))
   fi
+  return 0
+}
 
-  env CLOUDSDK_AUTH_ACCESS_TOKEN="$_GCLOUD_OP_TOKEN" gcloud "$@"
+# gcloud を上書きする関数。
+# - 非 export の _GCLOUD_OP_TOKEN / _GCLOUD_OP_EXP にアクセストークンをセッション内キャッシュ。
+# - 失効時のみ 1Password を読む。refresh token は python stdin にだけ流し argv に載せない。
+# - 8h reauth 失敗（終了コード 2）を検知したら _gcloud_op_relogin を実行し一度だけリトライ。
+# - env で本物の gcloud に渡すので関数再帰しない。トークンは子プロセスのみに継承され export されない。
+gcloud() {
+  emulate -L zsh
+  _gcloud_op_ensure_token || return 1
+  env CLOUDSDK_AUTH_ACCESS_TOKEN="$_GCLOUD_OP_TOKEN" command gcloud "$@"
+}
+
+# terraform 向けに 1h の Access Token を透過的に注入するオプショナルラッパー。
+# AWS など他クラウドの利用時に意図せず 1Password 認証が走るのを防ぐため、別名で定義。
+terraform-op() {
+  emulate -L zsh
+  _gcloud_op_ensure_token || return 1
+  env GOOGLE_OAUTH_ACCESS_TOKEN="$_GCLOUD_OP_TOKEN" command terraform "$@"
 }
 
 # 初回ブートストラップ。一度だけ実行する。
