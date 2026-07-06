@@ -7,11 +7,12 @@ ZSHRC="${HOME}/.zshrc"
 echo "=> Installing gcloud-wrapper to ${INSTALL_DIR}..."
 
 # ディレクトリの作成
-mkdir -p "$INSTALL_DIR"
+mkdir -m 700 -p "$INSTALL_DIR"
 
 # リポジトリ内のファイルをコピー
 if [[ -f "gcloud-op.zsh" && -f "mint.py" ]]; then
     cp gcloud-op.zsh mint.py "$INSTALL_DIR/"
+    chmod 600 "$INSTALL_DIR/gcloud-op.zsh" "$INSTALL_DIR/mint.py"
 else
     echo "Error: gcloud-op.zsh or mint.py not found in current directory."
     echo "Please run this script from the root of the repository."
