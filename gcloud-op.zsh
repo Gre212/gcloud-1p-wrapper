@@ -20,8 +20,8 @@ _GCLOUD_OP_DIR="${${(%):-%x}:A:h}"
 # reauth 失効: 終了コード 2（セッション切れ）。
 # その他の失敗: 終了コード 1。
 _gcloud_op_mint() {
-  op document get "$OP_GCLOUD_ITEM" --vault "$OP_GCLOUD_VAULT" --force 2>/dev/null \
-    | python3 "$_GCLOUD_OP_DIR/mint.py" \
+  command op document get "$OP_GCLOUD_ITEM" --vault "$OP_GCLOUD_VAULT" --force 2>/dev/null \
+    | command python3 -I "$_GCLOUD_OP_DIR/mint.py" \
     || return $?
 }
 
@@ -43,11 +43,11 @@ _gcloud_op_relogin() {
   [[ -f "$adc_path" ]] || { print -u2 "[gcloud-op] ADC ファイルが見つかりません: $adc_path"; return 1; }
 
   # 1Password ドキュメントに反映（あれば更新、なければ作成）
-  if op document get "$item" --vault "$vault" &>/dev/null; then
-    op document edit "$item" "$adc_path" --vault "$vault" || return 1
+  if command op document get "$item" --vault "$vault" &>/dev/null; then
+    command op document edit "$item" "$adc_path" --vault "$vault" || return 1
     print "[gcloud-op] 1Password ドキュメントを更新しました（$item）"
   else
-    op document create "$adc_path" --title "$item" --vault "$vault" || return 1
+    command op document create "$adc_path" --title "$item" --vault "$vault" || return 1
     print "[gcloud-op] 1Password ドキュメントを作成しました（$item）"
   fi
 
@@ -62,7 +62,7 @@ _gcloud_op_relogin() {
   )
   for t in $targets; do
     if [[ -e "$t" ]]; then
-      rm -Prf "$t" 2>/dev/null && print "[gcloud-op] 削除: $t" || print -u2 "[gcloud-op] 削除失敗: $t"
+      command rm -Prf "$t" 2>/dev/null && print "[gcloud-op] 削除: $t" || print -u2 "[gcloud-op] 削除失敗: $t"
     fi
   done
 
