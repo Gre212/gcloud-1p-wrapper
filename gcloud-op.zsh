@@ -98,7 +98,7 @@ _gcloud_op_ensure_token() {
 gcloud() {
   emulate -L zsh
   _gcloud_op_ensure_token || return 1
-  env CLOUDSDK_AUTH_ACCESS_TOKEN="$_GCLOUD_OP_TOKEN" command gcloud "$@"
+  CLOUDSDK_AUTH_ACCESS_TOKEN="$_GCLOUD_OP_TOKEN" command gcloud "$@"
 }
 
 # terraform 向けに 1h の Access Token を透過的に注入するオプショナルラッパー。
@@ -106,7 +106,7 @@ gcloud() {
 terraform-op() {
   emulate -L zsh
   _gcloud_op_ensure_token || return 1
-  env GOOGLE_OAUTH_ACCESS_TOKEN="$_GCLOUD_OP_TOKEN" command terraform "$@"
+  GOOGLE_OAUTH_ACCESS_TOKEN="$_GCLOUD_OP_TOKEN" command terraform "$@"
 }
 
 # 初回ブートストラップ。一度だけ実行する。
