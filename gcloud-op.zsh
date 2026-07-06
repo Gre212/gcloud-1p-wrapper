@@ -17,7 +17,7 @@ _GCLOUD_OP_DIR="${${(%):-%x}:A:h}"
 
 # 1Password から ADC JSON を読み、アクセストークンを発行する。
 # 成功: access_token と expires_in を改行区切りで stdout に出力。
-# reauth 失効: 終了コード 2（8h セッション切れ）。
+# reauth 失効: 終了コード 2（セッション切れ）。
 # その他の失敗: 終了コード 1。
 _gcloud_op_mint() {
   op document get "$OP_GCLOUD_ITEM" --vault "$OP_GCLOUD_VAULT" --force 2>/dev/null \
@@ -26,7 +26,7 @@ _gcloud_op_mint() {
 }
 
 # ADC 再取得 → 1Password 上書き → ローカル平文削除の一連。
-# gcloud-1p-init と 8h reauth の両方から呼ばれる。
+# gcloud-1p-init と reauth 失効時の両方から呼ばれる。
 # 引数: なし（OP_GCLOUD_VAULT / OP_GCLOUD_ITEM を参照）
 _gcloud_op_relogin() {
   local adc_path="${CLOUDSDK_CONFIG:-$HOME/.config/gcloud}/application_default_credentials.json"
@@ -78,7 +78,7 @@ _gcloud_op_ensure_token() {
   if [[ -z "${_GCLOUD_OP_TOKEN:-}" || -z "${_GCLOUD_OP_EXP:-}" || $now -ge $_GCLOUD_OP_EXP ]]; then
     out=$(_gcloud_op_mint); rc=$?
     if (( rc == 2 )); then
-      print -u2 "[gcloud-op] 8h セッション切れ。再ログインします…"
+      print -u2 "[gcloud-op] セッション切れ。再ログインします…"
       _gcloud_op_relogin || return 1
       out=$(_gcloud_op_mint); rc=$?
     fi
@@ -93,7 +93,7 @@ _gcloud_op_ensure_token() {
 # gcloud を上書きする関数。
 # - 非 export の _GCLOUD_OP_TOKEN / _GCLOUD_OP_EXP にアクセストークンをセッション内キャッシュ。
 # - 失効時のみ 1Password を読む。refresh token は python stdin にだけ流し argv に載せない。
-# - 8h reauth 失敗（終了コード 2）を検知したら _gcloud_op_relogin を実行し一度だけリトライ。
+# - reauth 失敗（終了コード 2）を検知したら _gcloud_op_relogin を実行し一度だけリトライ。
 # - env で本物の gcloud に渡すので関数再帰しない。トークンは子プロセスのみに継承され export されない。
 gcloud() {
   emulate -L zsh
