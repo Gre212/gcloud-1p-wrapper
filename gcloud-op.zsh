@@ -6,7 +6,7 @@
 #   OP_GCLOUD_VAULT   1Password の vault 名（既定: Private）
 #   OP_GCLOUD_ITEM    1Password ドキュメントのタイトル（既定: gcloud ADC）
 #
-# 初回セットアップ: gcloud-1p-init を実行する。
+# 初回セットアップ: gcloud-op-init を実行する。
 
 zmodload zsh/datetime 2>/dev/null
 
@@ -26,7 +26,7 @@ _gcloud_op_mint() {
 }
 
 # ADC 再取得 → 1Password 上書き → ローカル平文削除の一連。
-# gcloud-1p-init と reauth 失効時の両方から呼ばれる。
+# gcloud-op-init と reauth 失効時の両方から呼ばれる。
 # 引数: なし（OP_GCLOUD_VAULT / OP_GCLOUD_ITEM を参照）
 _gcloud_op_relogin() {
   local adc_path="${CLOUDSDK_CONFIG:-$HOME/.config/gcloud}/application_default_credentials.json"
@@ -111,7 +111,7 @@ terraform-op() {
 
 # 初回ブートストラップ。一度だけ実行する。
 # - _gcloud_op_relogin でブラウザ認証 → 1Password 保存 → ローカル削除
-gcloud-1p-init() {
+gcloud-op-init() {
   print "[gcloud-op] 初回セットアップを開始します。"
 
   _gcloud_op_relogin || return 1

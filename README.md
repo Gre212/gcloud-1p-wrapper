@@ -45,7 +45,7 @@ cd gcloud-1p-wrapper
 
 ```zsh
 exec zsh
-gcloud-1p-init
+gcloud-op-init
 ```
 
 ブラウザで Google 認証を行い、1Password に保存したのち、ローカルの平文ファイルを削除します。
@@ -87,7 +87,7 @@ alias terraform=terraform-op
 
 ## アカウント切り替え
 
-別のアカウントに切り替えたい場合は `gcloud-1p-init` を再実行してください。1Password ドキュメントが上書きされます。
+別のアカウントに切り替えたい場合は `gcloud-op-init` を再実行してください。1Password ドキュメントが上書きされます。
 
 現在のセッションのキャッシュを即時破棄したい場合は以下を実行します。
 
