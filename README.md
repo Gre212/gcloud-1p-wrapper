@@ -1,4 +1,4 @@
-# gcloud-wrapper
+# gcloud-op-wrapper
 
 gcloud の ADC（Application Default Credentials）に含まれる refresh token をローカルに平文保存せず、1Password に退避する仕組みです。
 
@@ -6,7 +6,7 @@ gcloud の ADC（Application Default Credentials）に含まれる refresh token
 
 `gcloud auth application-default login` が生成する `~/.config/gcloud/application_default_credentials.json` は、長命な refresh token を平文でディスクに保存するため、ディスク走査型マルウェア（Shai-Hulud など）の標的になりえます。
 
-このツールでは、1Password を活用した以下の仕組みで、平文保存を行わないようにしています。
+このツールでは、1Password を活用した以下の仕組みで、長期の平文保存を行わないようにしています。
 - refresh token を 1Password ドキュメントに退避し、ローカルの平文ファイルを削除
 - gcloud 実行時に 1Password から読み出し、OAuth2 トークンエンドポイントで 1h の access token を発行して `CLOUDSDK_AUTH_ACCESS_TOKEN` に注入
 
